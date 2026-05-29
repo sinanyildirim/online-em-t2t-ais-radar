@@ -10,8 +10,8 @@
 !README.md
 !assert_prerequisites.m
 !main_experiments_AIS_Radar.m
-!T2TA.m
-!T2TA_offline.m
+!T2TA_onEM.m
+!T2TA_offEM.m
 !create_track_pairs.m
 !conditional_sampling.m
 !eval_performance.m

@@ -1,3 +1,11 @@
+% Reproduce the synthetic AIS/radar experiment from the paper
+% "Online EM for T2T Association and Spoofing Detection Using AIS and Radar Data".
+%
+% The script generates paired radar/AIS tracks with intermittent AIS spoofing,
+% runs the online EM track-to-track association and spoofing-detection method,
+% compares it with an offline EM baseline, and writes the resulting workspace
+% and paper-style figures under the local results/ folder.
+
 clear; clc; close all; fc = 0;
 assert_prerequisites;
 
@@ -94,7 +102,7 @@ end
 % Estimate the transition probabilities
 F_MLE = S ./ sum(S, 2);
 
-%% Estimation, and Tracking, and T2TA from Partially Observed Data
+%% Estimation, tracking, and association from partially observed data
 B = 5; % the number of best assignments to be considered
 a_EM = 0.65; % power for the coefficient of stochastic approximation
 burnin_EM = 0.01*T; % burn-in time for EM
@@ -104,14 +112,14 @@ F0 = (0.1/(K-1))*ones(K)+(0.9-0.1/(K-1))*eye(K); % initial transition probabilit
 L_smooth = 0;
 
 % Run the algorithm
-[Parameter_est_online, Assoc_est_online, FiltX_online, SmoothX_online] = T2TA(Z, Y, K, F0, Sigma0, theta0, angle_comp, B, a_EM, burnin_EM, L_smooth);
+[Parameter_est_online, Assoc_est_online, FiltX_online, SmoothX_online] = T2TA_onEM(Z, Y, K, F0, Sigma0, theta0, angle_comp, B, a_EM, burnin_EM, L_smooth);
 
 EM_iter = 10;
-[Parameter_est_offline] = T2TA_offline(Z, Y, K, F, Sigma0, theta0, angle_comp, B, EM_iter);
+[Parameter_est_offline] = T2TA_offEM(Z, Y, K, F, Sigma0, theta0, angle_comp, B, EM_iter);
 F_est = Parameter_est_offline.Fs(:, :, end);
 Sigma_est = Parameter_est_offline.Sigmas(:, :, end);
 theta_est = Parameter_est_offline.Thetas(end);
-[~, Assoc_est_offline, FiltX_offline, SmoothX_offline] = T2TA(Z, Y, K, F_est, Sigma_est, theta_est, angle_comp, B, a_EM, T, L_smooth);
+[~, Assoc_est_offline, FiltX_offline, SmoothX_offline] = T2TA_onEM(Z, Y, K, F_est, Sigma_est, theta_est, angle_comp, B, a_EM, T, L_smooth);
 
 %%
 thr_vec = 0.0:0.001:1.00;

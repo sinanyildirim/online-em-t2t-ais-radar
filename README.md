@@ -40,7 +40,7 @@ The random seed is fixed with `rng(1)` in the main script. The default paper-sca
 Only the files needed by `main_experiments_AIS_Radar.m` are intended to be tracked:
 
 - Experiment driver: `main_experiments_AIS_Radar.m`
-- Online/offline algorithms: `T2TA.m`, `T2TA_offline.m`
+- Online/offline algorithms: `T2TA_onEM.m`, `T2TA_offEM.m`
 - Synthetic track generation: `create_track_pairs.m`, `conditional_sampling.m`, `point_mediator.m`
 - Filtering and utilities: `ffpfu.m`, `log_sum_exp.m`, `eval_performance.m`
 - Plotting: `plot_results_for_paper.m`, `plot_online_offline_results.m`

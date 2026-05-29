@@ -1,6 +1,6 @@
-function [Parameter_est] = T2TA_offline(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
+function [Parameter_est] = T2TA_offEM(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
 
-% [Parameter_est] = T2TA_offline(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
+% [Parameter_est] = T2TA_offEM(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
 
 % get the sizes
 [T, d] = size(Y{1});

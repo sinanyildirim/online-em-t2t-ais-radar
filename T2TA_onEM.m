@@ -1,6 +1,6 @@
-function [Parameter_est, Assoc_est, FiltX, SmoothX] = T2TA(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM, L_smooth)
+function [Parameter_est, Assoc_est, FiltX, SmoothX] = T2TA_onEM(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM, L_smooth)
 
-% [Thetas, Fs, Sigmas] = T2TA(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM)
+% [Thetas, Fs, Sigmas] = T2TA_onEM(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM)
 % 
 % Online EM and Track-to-Track association
 
