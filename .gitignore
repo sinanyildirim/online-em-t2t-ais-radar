@@ -1,0 +1,25 @@
+# Keep the GitHub repository minimal: ignore all local scratch files by default.
+*
+
+# Allow Git to traverse directories if future tracked files are added.
+!*/
+
+# Reproduction package.
+!.gitignore
+!LICENSE
+!README.md
+!assert_prerequisites.m
+!main_experiments_AIS_Radar.m
+!T2TA.m
+!T2TA_offline.m
+!create_track_pairs.m
+!conditional_sampling.m
+!eval_performance.m
+!ffpfu.m
+!log_sum_exp.m
+!point_mediator.m
+!plot_results_for_paper.m
+!plot_online_offline_results.m
+
+# Generated outputs remain local.
+results/
