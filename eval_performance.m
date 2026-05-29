@@ -88,5 +88,3 @@ performance_results.Negatives = Negatives;
 performance_results.Positives = Positives;
 performance_results.CM_filt = CM_filt;
 performance_results.CM_smooth= CM_smooth;
-
-

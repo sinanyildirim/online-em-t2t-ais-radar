@@ -23,6 +23,7 @@ end
 if ~exist(outputsavefolder, 'dir')
     mkdir(outputsavefolder);
 end
+
 T = 5000; % number of time steps
 d = 2; % dimension of the observations
 angle_comp = 1; % the component where the angle information is stored
@@ -35,7 +36,7 @@ F = [0.999 0.001;
 I_d = eye(2);
 sigmaNoise = 0.25*rand(2, 1);
 
-%Sigma = (0.5*(1:K)').^2*rand(1, d);
+% Parameters of the constant velocity model
 H = [[1, 0.1, 0, 0]; [0, 0.99, 0, 0]; [0, 0, 1, 0.1]; [0, 0, 0, 0.99]];
 U = diag([0.00001, 0.001, 0.00001, 0.001]);
 
@@ -57,16 +58,14 @@ path_genuine = cell(1, N);
 path_spoofed = cell(1, N);
 spoofed_tracks = zeros(1, N);
 
+% Parameters for simulating the spoofing
 spoof_parameters.spoof_create_mode = 2;
 spoof_parameters.F = F;
 spoof_parameters.spoof_time_coeff_vec = [1, 1, 1];
 spoof_parameters.probSpoofedTraj = 0.2;
 spoof_parameters.min_spoof_duration = 500;
 
-track_conditions.t_given = t_given_genuine;
-track_conditions.dim_given = dim_given_genuine;
-track_conditions.X_given = Y_given_genuine;
-
+% Parameters of the constant velocity model
 track_dynamics.mu0 = mu_0;
 track_dynamics.Cov0 = Cov_0;
 track_dynamics.H = H;
@@ -75,14 +74,18 @@ track_dynamics.angle_comp = angle_comp;
 track_dynamics.theta = theta;
 track_dynamics.sigmaNoise = sigmaNoise;
 
+% Given velocities / positions
+track_conditions.t_given = t_given_genuine;
+track_conditions.dim_given = dim_given_genuine;
+track_conditions.X_given = Y_given_genuine;
+
 for n = 1:N
     % Generate the (AIS, Radar) pair
     [X{n}, Y{n}, Z{n}, path_genuine{n}, path_spoofed{n}] = create_track_pairs(T, track_dynamics, spoof_parameters, track_conditions);
     spoofed_tracks(n) = sum(X{n} == 2) > 0;
 end
 
-%% Estiation of the parameters according using the complete data
-% MLE_complete_data()
+%% Estiation of the parameters according using the complete data (to be used as reference)
 Y_concat = cell2mat(Y')';
 Z_concat = cell2mat(Z')';
 X_concat = cell2mat(X);
@@ -121,16 +124,17 @@ Sigma_est = Parameter_est_offline.Sigmas(:, :, end);
 theta_est = Parameter_est_offline.Thetas(end);
 [~, Assoc_est_offline, FiltX_offline, SmoothX_offline] = T2TA_onEM(Z, Y, K, F_est, Sigma_est, theta_est, angle_comp, B, a_EM, T, L_smooth);
 
-%%
+%% Evaluate performance
 thr_vec = 0.0:0.001:1.00;
 [performance_results_online] = eval_performance(X, Assoc_est_online, FiltX_online, SmoothX_online, thr_vec);
 [performance_results_offline] = eval_performance(X, Assoc_est_offline, FiltX_offline, SmoothX_offline, thr_vec);
 
+%% Save the experiment results
 if saveoutputs == 1
     save(fullfile(outputsavefolder, 'T2TResults.mat'));
 end
 
-%%
+%% Plot only the online estimation results
 if plotresults == 1
     Parameter_est = Parameter_est_online;
     Assoc_est = Assoc_est_online;
@@ -140,7 +144,7 @@ if plotresults == 1
     plot_results_for_paper;
 end
 
-%%
+%% Plot online and offline estimation results
 if plotresultstogether == 1
    plot_online_offline_results; 
 end

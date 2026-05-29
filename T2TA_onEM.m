@@ -1,8 +1,33 @@
-function [Parameter_est, Assoc_est, FiltX, SmoothX] = T2TA_onEM(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM, L_smooth)
+function [Parameter_est, Assoc_est, FiltX, SmoothX] = T2TA_onEM(Z, Y, ...
+    K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM, L_smooth)
 
-% [Thetas, Fs, Sigmas] = T2TA_onEM(Z, Y, K, F, Sigma, theta, angle_comp, B, a_EM, burnin_EM)
+% [Parameter_est, Assoc_est, FiltX, SmoothX] = T2TA_onEM(Z, Y, K, F, ...
+% Sigma, theta, angle_comp, B, a_EM, burnin_EM, L_smooth)
 % 
-% Online EM and Track-to-Track association
+% This function performs Online EM for parameter estimation and 
+% online spoofing detection with track-to-track assocaition.
+% 
+% INPUTS
+% 
+% Z: AIS tracks
+% Y: radar tracks
+% K: number of states for X_t: the spoofing/genuine state
+% F: initial transition matrix for X_t
+% Sigma: initial covariance matrix for the difference between radar and AIS
+% signals
+% theta: initial angular bias
+% angle_comp: the index number for the angular component
+% B: number of best associations to be considered
+% a_EM: the power parameter for the stochastic approximation in online EM
+% burnin_EM: burn-in time for online EM - prior to which no EM updates
+% L_smooth: the lag of real-time (fixed-lag) backward smoothing.
+%
+% OUTPUTS
+% 
+% Parameter_est: Online EM estimates over time
+% Assoc_est: Association estimates
+% FiltX: Filtering probabilities for X_t
+% SmoothX: Fixed-lag (L) smoothing probabilities for X_t
 
 % get the sizes
 [T, d] = size(Y{1});
@@ -23,7 +48,7 @@ Beta = repmat({zeros(T, K)}, M, N);
 Gamma = repmat({zeros(T, K)}, M, N);
 
 % initialize the expected statistics of EM
-BS = repmat({{zeros(1, K), zeros(1, K), zeros(1, K), zeros(d, K), zeros(K)}}, M, N); %components in the sum for the computaztion of the expectations of the stats S^1,...,S^5
+BS = repmat({{zeros(1, K), zeros(1, K), zeros(1, K), zeros(d, K), zeros(K)}}, M, N); 
 
 % initialize the intermediate functions
 T_f = repmat({{repmat({zeros(1, K)}, 1, K), repmat({zeros(1, K)}, 1, K), ...
@@ -48,47 +73,43 @@ for t = 1:T
         for n = 1:N
             % Forward filtering
             if t == 1
-                alpha_prev = [1 zeros(1, K-1)]; %Modification to check
+                alpha_prev = [1 zeros(1, K-1)];
             else
-                alpha_prev = Alpha{m, n}(t-1, :); %alpha_(t-1)
+                alpha_prev = Alpha{m, n}(t-1, :);
             end
-
             [Alpha{m, n}(t, :), Beta{m, n}(t, :), L(m, n)] ...
-                = ffpfu(alpha_prev, L(m, n), Y{n}(t, :), Z{m}(t, :), F, theta_vec, Sigma); % MaJ de alpha et beta par l'algo de filtrage
+                = ffpfu(alpha_prev, L(m, n), Y{n}(t, :), Z{m}(t, :), F, theta_vec, Sigma); 
             
             % Backward smoothing
             Gamma{m, n}(t, :) = Alpha{m, n}(t, :);
             for tau = t-1:-1:max(t-L_smooth, 1)
-                temp_1 = Gamma{m, n}(tau+1, :)./Beta{m, n}(tau+1, :); % row xt+1
-                temp_2 = Alpha{m, n}(tau, :)'.*Fs(:, :, tau); % mtx (xt, xt+1)
+                temp_1 = Gamma{m, n}(tau+1, :)./Beta{m, n}(tau+1, :);
+                temp_2 = Alpha{m, n}(tau, :)'.*Fs(:, :, tau);
                 Gamma{m, n}(tau, :) = sum(temp_1.*temp_2, 2)';
             end
 
             % prediction distribution
-            beta_vec = Beta{m, n}(t, :); %beta_t(i=:)
-            alpha_vec = Alpha{m, n}(t, :); %alpha_t(i=:)
+            beta_vec = Beta{m, n}(t, :);
+            alpha_vec = Alpha{m, n}(t, :);
             Alpha_F_mtx = alpha_prev'.*F;
 
             if burnin_EM < T % If burnin_EM = T, no statistic is needed
                 for i = 1:K
                     % Calculate the additive statistics S^1,... ,S^5
                     % I_K : matrix conta
-                    s{1} = repmat(I_K(:, i), 1, K); %=S^3
-                    s{2} = repmat(I_K(i, :), K, 1);%=S^4
-                    s{3} = (Y{n}(t, angle_comp) - Z{m}(t, angle_comp))*s{2}; %=S^5
-                    s{4} = tensorprod(s{2}, ((Y{n}(t, :) - theta_vec -  Z{m}(t, :) ).^2)'); %=S^1
+                    s{1} = repmat(I_K(:, i), 1, K);
+                    s{2} = repmat(I_K(i, :), K, 1);
+                    s{3} = (Y{n}(t, angle_comp) - Z{m}(t, angle_comp))*s{2};
+                    s{4} = tensorprod(s{2}, ((Y{n}(t, :) - theta_vec -  Z{m}(t, :) ).^2)');
                     s{5} = squeeze(tensorprod(I_K(:, i), I_K)); %=S^2
                     for is = 1:5
-                        % Update T
-                        % T_f contains the estimators of the additive stats
-                        % S^1,...,S^5
-                        % T_f{track}{index of the stat}{value of X in 1:K}
+                        % Update the intermediate function of forward
+                        % smoothing
                         Tpluss_mtx = (1 - gamma_t)*pagetranspose(T_f{m, n}{is}{i}) + gamma_t*s{is};
                         numer_mtx = Tpluss_mtx.*Alpha_F_mtx;
                         numer_mtx_sum = sum(numer_mtx, 1); %=values of the sum on j for different values of i                    
                         T_f{m, n}{is}{i} = numer_mtx_sum./beta_vec;
                         % calculate the expectations
-                        % Formula (3) and (5) of the report
                         BS{m, n}{is}(:, i) = squeeze(pagemtimes(T_f{m, n}{is}{i}, alpha_vec'));
                     end
                 end
@@ -125,12 +146,10 @@ for t = 1:T
 
     % M-step (after sufficiently many time steps so that the statistics
     % have 'matured').
-    % Regarder ici pour comprendre à quoi correspondent les variables
-    % calculées
     if t > burnin_EM
-        Sigma = (BS_avg{4}./BS_avg{2})'; %BS4=BS1;BS2=BS4
-        F = BS_avg{5}./BS_avg{1}'; %BS5=BS2;BS1=BS3
-        theta = (BS_avg{3}*Sigma(:, angle_comp))/(BS_avg{2}*Sigma(:, angle_comp)); %BS3=BS5
+        Sigma = (BS_avg{4}./BS_avg{2})';
+        F = BS_avg{5}./BS_avg{1}';
+        theta = (BS_avg{3}*Sigma(:, angle_comp))/(BS_avg{2}*Sigma(:, angle_comp));
         theta_vec = I_d(angle_comp, :)*theta;
 
         % Postprocess F

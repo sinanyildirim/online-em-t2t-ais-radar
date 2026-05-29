@@ -1,6 +1,26 @@
 function [Parameter_est] = T2TA_offEM(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
 
 % [Parameter_est] = T2TA_offEM(Z, Y, K, F, Sigma, theta, angle_comp, B, EM_iter)
+% 
+% This function performs Offline EM for parameter estimation for the T2TA
+% problem.
+% 
+% INPUTS
+% 
+% Z: AIS tracks
+% Y: radar tracks
+% K: number of states for X_t: the spoofing/genuine state
+% F: initial transition matrix for X_t
+% Sigma: initial covariance matrix for the difference between radar and AIS
+% signals
+% theta: initial angular bias
+% angle_comp: the index number for the angular component
+% B: number of best associations to be considered
+% EM_iter: number of EM iterations
+%
+% OUTPUTS
+% 
+% Parameter_est: Offline EM estimates
 
 % get the sizes
 [T, d] = size(Y{1});

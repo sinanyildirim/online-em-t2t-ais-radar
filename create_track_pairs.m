@@ -1,5 +1,21 @@
-function [x, Y, Z, path_genuine, path_spoofed] = create_track_pairs(T, track_dynamics, spoof_parameters, track_conditions)
+function [x, Y, Z, path_genuine, path_spoofed] = create_track_pairs(T, ...
+    track_dynamics, spoof_parameters, track_conditions)
 
+% [x, Y, Z, path_genuine, path_spoofed] = create_track_pairs(T, ...
+% track_dynamics, spoof_parameters, track_conditions)
+% 
+% This function creates a pair of tracks for T time steps according to
+% track_dynamics: parameters constant velocity model and the angualar bias
+% spoof_parameters: spoofing parameters
+% track_conditions: given locations and velocities
+% 
+% OUTPUTS:
+% 
+% x: Tx1 vector of states for the spoofing/genuine status of the target
+% Y: Radar track in polar coordinates
+% Z: AIS track in polar coordinates
+% path_genuine: genuine track in cartesian coordinates
+% path_spoofed: spoofed track in cartesian coordinates
 
 spoof_create_mode = spoof_parameters.spoof_create_mode;
 
@@ -49,7 +65,6 @@ end
 
 % Step B. Generate the tracks
 % B.1 Generate the genuine track in cartesian coordinates
-
 path_genuine = conditional_sampling(mu_0, Cov_0, H, U, T, track_conditions);
 
 % B.2 Now generate the spoofed track
@@ -68,7 +83,8 @@ for i = 1:n_chp
     T_temp = t_chp_e(i) - t_chp_b(i)+1;
     spoofed_track_conditions.dim_given = {[1, 2, 3, 4], [1, 3], [1, 2, 3, 4]};
     spoofed_track_conditions.t_given = [1 floor(T_temp/2) T_temp];
-    spoofed_track_conditions.X_given = {path_genuine(:, t_chp_b(i)), X_middle_spoofed, path_genuine(:, t_chp_e(i))};
+    spoofed_track_conditions.X_given = {path_genuine(:, t_chp_b(i)), ...
+        X_middle_spoofed, path_genuine(:, t_chp_e(i))};
     path_spoofed_section = conditional_sampling(mu_0, Cov_0, H, U, T_temp, ...
         spoofed_track_conditions);
     path_spoofed(:, t_chp_b(i):t_chp_e(i)) = path_spoofed_section;
