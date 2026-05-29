@@ -16,7 +16,7 @@ required_functions = {
 missing_functions = {};
 for i = 1:numel(required_functions)
     function_name = required_functions{i};
-    if exist(function_name, 'file') ~= 2 && exist(function_name, 'builtin') ~= 5
+    if exist(function_name, 'file') == 0 && exist(function_name, 'builtin') == 0
         missing_functions{end + 1} = function_name; %#ok<AGROW>
     end
 end
