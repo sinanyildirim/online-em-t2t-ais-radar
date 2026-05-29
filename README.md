@@ -4,7 +4,7 @@ Minimal MATLAB reproduction package for the EUSIPCO 2026 paper:
 
 > Online EM for T2T Association and Spoofing Detection Using AIS and Radar Data
 
-The entry point is [`main_experiments_AIS_Radar.m`](main_experiments_AIS_Radar.m). It generates the synthetic AIS/radar track pairs used by the paper experiment, runs the online EM estimator, runs the offline baseline, evaluates association and spoofing-detection performance, and exports the paper-style figures.
+The entry point is [`main_experiments.m`](main_experiments.m). It generates the synthetic AIS/radar track pairs used by the paper experiment, runs the online EM estimator, runs the offline baseline, evaluates association and spoofing-detection performance, and exports the paper-style figures.
 
 ## Requirements
 
@@ -19,13 +19,13 @@ The script calls [`assert_prerequisites.m`](assert_prerequisites.m) first, so mi
 From this folder, run:
 
 ```matlab
-main_experiments_AIS_Radar
+main_experiments
 ```
 
 or from a shell with MATLAB on `PATH`:
 
 ```sh
-matlab -batch "main_experiments_AIS_Radar"
+matlab -batch "main_experiments"
 ```
 
 Outputs are written under `results/`:
@@ -37,9 +37,9 @@ The random seed is fixed with `rng(1)` in the main script. The default paper-sca
 
 ## Repository Contents
 
-Only the files needed by `main_experiments_AIS_Radar.m` are intended to be tracked:
+Only the files needed by `main_experiments.m` are intended to be tracked:
 
-- Experiment driver: `main_experiments_AIS_Radar.m`
+- Experiment driver: `main_experiments.m`
 - Online/offline algorithms: `T2TA_onEM.m`, `T2TA_offEM.m`
 - Synthetic track generation: `create_track_pairs.m`, `conditional_sampling.m`, `point_mediator.m`
 - Filtering and utilities: `ffpfu.m`, `log_sum_exp.m`, `eval_performance.m`
